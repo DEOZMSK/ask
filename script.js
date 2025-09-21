@@ -1,7 +1,6 @@
-/* Marafon Survey 17 — чистый JS. 
-   ✔ Один вопрос на экран, прогресс-бар, чёрно-золотой стиль.
-   ✔ Отправка в Google Sheets через Apps Script БЕЗ CORS-проблем (URL-encoded).
-   🔧 ВСТАВЬ URL веб‑приложения сюда: */
+// Вставь сюда свой URL из Google Apps Script (обязательно /exec)
+const SHEET_URL = "https://script.google.com/macros/s/AKfycby0jr3Mj_Wu6ltSIwFFRuS2U_zPJDkeS7F95ATUuWwTXk5vhS2KtjQVzali0WdRv5RP1Q/exec";
+
 async function sendToSheet(formData) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(formData)) {
@@ -9,7 +8,7 @@ async function sendToSheet(formData) {
   }
 
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycby0jr3Mj_Wu6ltSIwFFRuS2U_zPJDkeS7F95ATUuWwTXk5vhS2KtjQVzali0WdRv5RP1Q/exec", {
+    const res = await fetch(SHEET_URL, {
       method: "POST",
       body: params
     });
@@ -19,7 +18,6 @@ async function sendToSheet(formData) {
     alert("Ошибка отправки: " + err);
   }
 }
-
 
 /* Структура опроса (редактируй тексты свободно). id — это имя колонки в таблице. */
 const SURVEY = [
