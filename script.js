@@ -2,7 +2,7 @@ const form = document.getElementById("survey-form");
 const thanks = document.getElementById("thanks");
 
 // Вставь сюда свой URL из Google Apps Script
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzvFbbFe5H9SwhD_1F_r5JIoAgSFPaQFwiqjsPTgmaHjrMmug83i2inqQ8CKpqcJDsz4g/exec";
+const SHEET_URL = "https://script.google.com/macros/s/ВАШ_ID/exec";
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
