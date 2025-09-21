@@ -2,7 +2,24 @@
    ✔ Один вопрос на экран, прогресс-бар, чёрно-золотой стиль.
    ✔ Отправка в Google Sheets через Apps Script БЕЗ CORS-проблем (URL-encoded).
    🔧 ВСТАВЬ URL веб‑приложения сюда: */
-const SHEET_URL = "https://script.google.com/macros/s/AKfycby0jr3Mj_Wu6ltSIwFFRuS2U_zPJDkeS7F95ATUuWwTXk5vhS2KtjQVzali0WdRv5RP1Q/exec";
+async function sendToSheet(formData) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(formData)) {
+    params.append(key, value);
+  }
+
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycby0jr3Mj_Wu6ltSIwFFRuS2U_zPJDkeS7F95ATUuWwTXk5vhS2KtjQVzali0WdRv5RP1Q/exec", {
+      method: "POST",
+      body: params
+    });
+    const text = await res.text();
+    console.log("Ответ сервера:", text);
+  } catch (err) {
+    alert("Ошибка отправки: " + err);
+  }
+}
+
 
 /* Структура опроса (редактируй тексты свободно). id — это имя колонки в таблице. */
 const SURVEY = [
