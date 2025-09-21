@@ -1,198 +1,232 @@
-// Вставь сюда свой URL из Google Apps Script (обязательно /exec)
-const SHEET_URL = "https://script.google.com/macros/s/AKfycby0jr3Mj_Wu6ltSIwFFRuS2U_zPJDkeS7F95ATUuWwTXk5vhS2KtjQVzali0WdRv5RP1Q/exec";
-
-async function sendToSheet(formData) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(formData)) {
-    params.append(key, value);
-  }
-
-  try {
-    const res = await fetch(SHEET_URL, {
-      method: "POST",
-      body: params
-    });
-    const text = await res.text();
-    console.log("Ответ сервера:", text);
-  } catch (err) {
-    alert("Ошибка отправки: " + err);
-  }
-}
-
-/* Структура опроса (редактируй тексты свободно). id — это имя колонки в таблице. */
-const SURVEY = [
-  { id:"motivation", type:"single", text:"Что сейчас для тебя наиболее важно?",
-    options:["💼 Карьера и работа","💖 Отношения и семья","💸 Деньги и финансы","🧘 Духовность и самопознание"] },
-  { id:"fear_choice", type:"single", text:"Что сильнее всего мешает тебе решиться на перемены?",
-    image:"https://i.imgur.com/0Qd5uJ2.png",
-    options:["😱 Потеря стабильности","🙈 Ошибка в выборе","💸 Деньги уйдут впустую"] },
-  { id:"balance", type:"single", text:"Что для тебя сейчас важнее всего?",
-    image:"https://i.imgur.com/hMuU3sH.png",
-    options:["⚖️ Баланс между работой и отдыхом","👨‍👩‍👧 Время с семьёй","🚀 Самореализация","🌱 Спокойствие и гармония"] },
-  { id:"format_pref", type:"single", text:"В каком формате тебе было бы удобнее получать консультацию?",
-    options:["💬 Чат в Telegram","📹 Видеозвонок","📞 Голосовой звонок","📝 Запись с разбором"] },
-  { id:"trust", type:"multi", text:"Что помогло бы тебе больше доверять астрологу?",
-    image:"https://i.imgur.com/oCMvumz.png",
-    options:["📊 Реальные примеры и кейсы","⭐ Отзывы других клиентов","🎓 Подтверждённые знания и опыт","💬 Личная рекомендация"] },
-  { id:"nps", type:"nps", text:"Оцени от 0 до 10, насколько тебе в целом интересна астрология?" },
-  { id:"improve", type:"multi", text:"Что стоит улучшить в подаче материала?",
-    options:["🖼 Больше картинок и наглядности","📹 Видео-формат","📝 Чёткая структура","⚡ Краткость и конкретика"] },
-  { id:"price", type:"single", text:"Какая цена консультации кажется справедливой?",
-    image:"https://i.imgur.com/dxra9Ow.png",
-    options:["💸 До 1000₽","💰 1000–3000₽","💎 3000–5000₽","👑 Выше 5000₽"] },
-  { id:"result_goal", type:"text", text:"Что для тебя будет самым ценным результатом консультации?",
-    image:"https://i.imgur.com/12E9sLE.png" },
-  { id:"recommend", type:"nps", text:"Насколько вероятно, что ты порекомендуешь консультацию другу или знакомому? (0–10)" },
-  { id:"likes", type:"text", text:"Что тебе больше всего нравится в консультациях?" },
-  { id:"dislikes", type:"text", text:"Что может раздражать или отталкивать в консультации?" },
-  { id:"prefer_time", type:"single", text:"Когда тебе было бы удобнее всего общаться?",
-    options:["🌅 Утро","🌞 День","🌆 Вечер","🌙 Ночь"] },
-  { id:"prefer_length", type:"single", text:"Какая длительность консультации для тебя оптимальна?",
-    options:["⏱ 30 минут","🕐 1 час","🕑 2 часа"] },
-  { id:"extra_topics", type:"multi", text:"Какие темы тебе наиболее интересны?",
-    options:["💼 Карьера","💖 Отношения","💸 Финансы","🌱 Личное развитие","🧘 Духовность"] },
-  { id:"contact_pref", type:"single", text:"Как тебе удобнее всего оставлять контакты?",
-    options:["📱 Telegram","📧 Email","📞 Телефон"] },
-  { id:"final_comment", type:"text", text:"Можешь написать здесь всё, что считаешь важным или полезным для меня 🙏" },
+const QUIZ = [
+  { question: "Вопрос 1", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 2", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 3", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 4", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 5", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 6", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 7", answers:[
+    {text:"Ответ 1 (+1 саттва)", guna:"sat", value:1},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 8", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 9", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 10", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 11", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (0)", guna:"raj", value:0},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 12", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 13", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 14", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 15", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 16", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 17", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 18", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (0)", guna:"raj", value:0},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 19", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 20", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 21", answers:[
+    {text:"Ответ 1 (+1 саттва)", guna:"sat", value:1},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 22", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 23", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 24", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 25", answers:[
+    {text:"Ответ 1 (+1 саттва)", guna:"sat", value:1},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 26", answers:[
+    {text:"Ответ 1 (+1 саттва)", guna:"sat", value:1},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 27", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 28", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 29", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+2 тамас)", guna:"tam", value:2},
+    {text:"Ответ 3 (+1 раджас)", guna:"raj", value:1},
+  ]},
+  { question: "Вопрос 30", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+1 раджас)", guna:"raj", value:1},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 31", answers:[
+    {text:"Ответ 1 (+2 саттва)", guna:"sat", value:2},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
+  { question: "Вопрос 32", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+2 тамас)", guna:"tam", value:2},
+  ]},
+  { question: "Вопрос 33", answers:[
+    {text:"Ответ 1 (+3 саттва)", guna:"sat", value:3},
+    {text:"Ответ 2 (+2 раджас)", guna:"raj", value:2},
+    {text:"Ответ 3 (+3 тамас)", guna:"tam", value:3},
+  ]},
 ];
 
-const app = {
-  intro: document.getElementById('screen-intro'),
-  survey: document.getElementById('screen-survey'),
-  thanks: document.getElementById('screen-thanks'),
-  btnStart: document.getElementById('btn-start'),
-  btnPrev: document.getElementById('btn-prev'),
-  btnNext: document.getElementById('btn-next'),
-  btnSubmit: document.getElementById('btn-submit'),
-  qwrap: document.getElementById('qwrap'),
-  bar: document.getElementById('bar'),
-  step: document.getElementById('step'),
+const GROUPS = {
+  sat: {title:"Саттва — гармония", text:"Твоя природа — свет и ясность.", link:"https://t.me/+SNNjufNTtGJhMDI6"},
+  raj: {title:"Раджас — действие", text:"Ты движим страстью и энергией.", link:"https://t.me/+B-mozvEpxM5kZjVi"},
+  tam: {title:"Тамас — покой", text:"Тебе свойственна тяжесть и инерция.", link:"https://t.me/+K8aDzjYAsOg3Y2Fi"},
 };
 
-let state = { i:0, answers:{} };
+const app = {
+  start: document.getElementById("screen-start"),
+  quiz: document.getElementById("screen-quiz"),
+  result: document.getElementById("screen-result"),
+  btnStart: document.getElementById("btn-start"),
+  btnRestart: document.getElementById("btn-restart"),
+  qContainer: document.getElementById("question-container"),
+  resultTitle: document.getElementById("result-title"),
+  resultText: document.getElementById("result-text"),
+  resultLink: document.getElementById("result-link"),
+};
 
-function show(el){ el.classList.remove('hidden') }
-function hide(el){ el.classList.add('hidden') }
-function updateProgress(){
-  const pct = Math.round((state.i)/SURVEY.length*100);
-  app.bar.style.width = pct+'%';
-  app.step.textContent = (state.i+1)+" / "+SURVEY.length;
+let state = {index:0, score:{sat:0,raj:0,tam:0}};
+
+function showScreen(s){
+  [app.start, app.quiz, app.result].forEach(x=>x.classList.remove("active"));
+  s.classList.add("active");
 }
 
-function start(){
-  state = {i:0, answers:{}};
-  hide(app.intro); show(app.survey);
-  render();
+function startQuiz(){
+  state = {index:0, score:{sat:0,raj:0,tam:0}};
+  showScreen(app.quiz);
+  renderQuestion();
 }
 
-function render(){
-  const q = SURVEY[state.i];
-  app.qwrap.innerHTML = "";
-
-  const title = document.createElement('h2');
-  title.className = "q-title";
-  title.textContent = q.text;
-  app.qwrap.appendChild(title);
-
-  if(q.image){
-    const img = document.createElement('img');
-    img.src = q.image; img.alt=""; img.className="q-image";
-    app.qwrap.appendChild(img);
-  }
-
-  if(q.type === "single"){
-    const box = document.createElement('div'); box.className="options";
-    q.options.forEach((opt,idx)=>{
-      const id = q.id+"-"+idx;
-      const wrap = document.createElement('label'); wrap.className="opt";
-      const input = document.createElement('input'); input.type="radio"; input.name=q.id; input.id=id; input.value=opt;
-      if(state.answers[q.id]===opt) input.checked = true;
-      const span = document.createElement('span'); span.textContent = opt;
-      wrap.appendChild(input); wrap.appendChild(span); box.appendChild(wrap);
-    });
-    app.qwrap.appendChild(box);
-  }
-
-  if(q.type === "multi"){
-    const box = document.createElement('div'); box.className="options";
-    const saved = new Set(state.answers[q.id]||[]);
-    q.options.forEach((opt,idx)=>{
-      const id = q.id+"-"+idx;
-      const wrap = document.createElement('label'); wrap.className="opt";
-      const input = document.createElement('input'); input.type="checkbox"; input.name=q.id; input.id=id; input.value=opt;
-      if(saved.has(opt)) input.checked = true;
-      const span = document.createElement('span'); span.textContent = opt;
-      wrap.appendChild(input); wrap.appendChild(span); box.appendChild(wrap);
-    });
-    app.qwrap.appendChild(box);
-  }
-
-  if(q.type === "text"){
-    const ta = document.createElement('textarea'); ta.name=q.id; ta.rows=4; ta.placeholder="Напиши здесь...";
-    ta.value = state.answers[q.id] || "";
-    app.qwrap.appendChild(ta);
-  }
-
-  if(q.type === "nps"){
-    const wrap = document.createElement('div'); wrap.className="range";
-    const out = document.createElement('strong'); out.textContent = state.answers[q.id] ?? "—";
-    const r = document.createElement('input'); r.type="range"; r.min=0; r.max=10; r.step=1;
-    r.value = state.answers[q.id] ?? 5;
-    r.addEventListener('input',()=>{ out.textContent=r.value });
-    const hint0 = document.createElement('span'); hint0.textContent="0";
-    const hint10 = document.createElement('span'); hint10.textContent="10";
-    wrap.append(hint0, r, hint10, out);
-    app.qwrap.appendChild(wrap);
-  }
-
-  // nav buttons
-  app.btnPrev.disabled = state.i===0;
-  app.btnNext.classList.toggle('hidden', state.i===SURVEY.length-1);
-  app.btnSubmit.classList.toggle('hidden', state.i!==SURVEY.length-1);
-
-  updateProgress();
+function renderQuestion(){
+  const q = QUIZ[state.index];
+  app.qContainer.innerHTML = `<h2>${q.question}</h2>`;
+  q.answers.forEach(a=>{
+    const btn = document.createElement("button");
+    btn.className="answer";
+    btn.textContent=a.text;
+    btn.onclick=()=>selectAnswer(a);
+    app.qContainer.appendChild(btn);
+  });
 }
 
-function collectCurrent(){
-  const q = SURVEY[state.i];
-  if(q.type==="single"){
-    const sel = app.qwrap.querySelector('input[type="radio"]:checked');
-    if(sel) state.answers[q.id] = sel.value;
-  }
-  if(q.type==="multi"){
-    const vals = [...app.qwrap.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value);
-    state.answers[q.id] = vals;
-  }
-  if(q.type==="text"){
-    const ta = app.qwrap.querySelector('textarea'); state.answers[q.id] = ta.value.trim();
-  }
-  if(q.type==="nps"){
-    const r = app.qwrap.querySelector('input[type="range"]'); state.answers[q.id] = r.value;
+function selectAnswer(a){
+  state.score[a.guna]+=a.value;
+  state.index++;
+  if(state.index<QUIZ.length){
+    renderQuestion();
+  } else {
+    finishQuiz();
   }
 }
 
-async function submit(){
-  collectCurrent();
-
-  // Сбор безопасным способом для CORS: URLSearchParams (application/x-www-form-urlencoded — “simple request”)
-  const params = new URLSearchParams();
-  params.append("timestamp", new Date().toISOString());
-  for(const q of SURVEY){
-    const v = state.answers[q.id];
-    if(Array.isArray(v)) params.append(q.id, v.join(", "));
-    else params.append(q.id, v ?? "");
-  }
-
-  try{
-    await fetch(SHEET_URL, { method:"POST", body: params });
-    hide(app.survey); show(app.thanks);
-  }catch(err){
-    alert("Ошибка отправки: "+err);
-  }
+function finishQuiz(){
+  let res = Object.entries(state.score).sort((a,b)=>b[1]-a[1])[0][0];
+  let g = GROUPS[res];
+  app.resultTitle.textContent=g.title;
+  app.resultText.textContent=g.text;
+  app.resultLink.href=g.link;
+  showScreen(app.result);
 }
 
-// events
-app.btnStart.addEventListener('click', start);
-app.btnPrev.addEventListener('click', ()=>{ collectCurrent(); state.i=Math.max(0,state.i-1); render(); });
-app.btnNext.addEventListener('click', ()=>{ collectCurrent(); state.i=Math.min(SURVEY.length-1,state.i+1); render(); });
-app.btnSubmit.addEventListener('click', submit);
+app.btnStart.onclick=startQuiz;
+app.btnRestart.onclick=()=>showScreen(app.start);
