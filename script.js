@@ -1,24 +1,23 @@
 const form = document.getElementById("survey-form");
 const thanks = document.getElementById("thanks");
 
-// Вставь сюда свой URL из Google Apps Script
+// Вставь сюда свой URL из Google Apps Script (обязательно /exec)
 const SHEET_URL = "https://script.google.com/macros/s/ВАШ_ID/exec";
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
   const data = Object.fromEntries(new FormData(form).entries());
 
-  try{
-    let res = await fetch(SHEET_URL, {
-      method:"POST",
-      body: JSON.stringify(data),
-      headers:{"Content-Type":"application/json"}
-    });
-    let json = await res.json();
-    console.log("Ответ сервера:", json);
+  const params = new URLSearchParams();
+  for (const [k,v] of Object.entries(data)) {
+    params.append(k,v);
+  }
+
+  try {
+    await fetch(SHEET_URL, {method:"POST", body:params});
     form.classList.add("hidden");
     thanks.classList.remove("hidden");
-  }catch(err){
+  } catch(err) {
     alert("Ошибка отправки: "+err);
   }
 });
