@@ -1,8 +1,9 @@
-/* © mr.Kcopoc 2025 — чистый JS. 
+/* © mr.Kcopoc 2025 — чистый JS.
    ✔ Один вопрос на экран, прогресс-бар, чёрно-золотой стиль.
    ✔ Отправка в Google Sheets через Apps Script БЕЗ CORS-проблем (URL-encoded).
    🔧 ВСТАВЬ URL веб‑приложения сюда: */
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbzvFbbFe5H9SwhD_1F_r5JIoAgSFPaQFwiqjsPTgmaHjrMmug83i2inqQ8CKpqcJDsz4g/exec";
+const CONSENT_KEY = "askConsent2025";
 
 /* Структура опроса (редактируй тексты свободно). id — это имя колонки в таблице. */
 const SURVEY = [
@@ -45,6 +46,7 @@ const app = {
   intro: document.getElementById('screen-intro'),
   survey: document.getElementById('screen-survey'),
   thanks: document.getElementById('screen-thanks'),
+  blocked: document.getElementById('screen-blocked'),
   btnStart: document.getElementById('btn-start'),
   btnPrev: document.getElementById('btn-prev'),
   btnNext: document.getElementById('btn-next'),
@@ -54,10 +56,48 @@ const app = {
   step: document.getElementById('step'),
 };
 
+const consent = {
+  overlay: document.getElementById('consent-overlay'),
+  checkbox: document.getElementById('consent-check'),
+  btnContinue: document.getElementById('btn-consent-continue'),
+  btnDecline: document.getElementById('btn-consent-decline'),
+  btnReset: document.getElementById('btn-consent-reset'),
+};
+
 let state = { i:0, answers:{} };
 
-function show(el){ el.classList.remove('hidden') }
-function hide(el){ el.classList.add('hidden') }
+function show(el){ el.classList.remove('hidden'); }
+function hide(el){ el.classList.add('hidden'); }
+
+function applyConsentState(){
+  const status = localStorage.getItem(CONSENT_KEY);
+  const accepted = status === 'accepted';
+  const declined = status === 'declined';
+
+  app.btnStart.disabled = !accepted;
+
+  if(accepted){
+    hide(app.blocked);
+    consent.overlay.classList.add('hidden');
+    return;
+  }
+
+  if(declined){
+    consent.overlay.classList.add('hidden');
+    hide(app.intro);
+    hide(app.survey);
+    hide(app.thanks);
+    show(app.blocked);
+    return;
+  }
+
+  show(app.intro);
+  hide(app.blocked);
+  consent.overlay.classList.remove('hidden');
+  consent.checkbox.checked = false;
+  if(consent.btnContinue) consent.btnContinue.disabled = true;
+}
+
 function updateProgress(){
   const pct = Math.round((state.i)/SURVEY.length*100);
   app.bar.style.width = pct+'%';
@@ -65,8 +105,15 @@ function updateProgress(){
 }
 
 function start(){
+  if(localStorage.getItem(CONSENT_KEY) !== 'accepted'){
+    applyConsentState();
+    alert('Вы не подтвердили согласие на обработку данных');
+    return;
+  }
   state = {i:0, answers:{}};
-  hide(app.intro); show(app.survey);
+  hide(app.intro);
+  hide(app.thanks);
+  show(app.survey);
   render();
 }
 
@@ -157,6 +204,12 @@ function collectCurrent(){
 }
 
 async function submit(){
+  if(localStorage.getItem(CONSENT_KEY) !== 'accepted'){
+    alert('Вы не подтвердили согласие на обработку данных');
+    applyConsentState();
+    return;
+  }
+
   collectCurrent();
 
   // Сбор безопасным способом для CORS: URLSearchParams (application/x-www-form-urlencoded — “simple request”)
@@ -181,3 +234,32 @@ app.btnStart.addEventListener('click', start);
 app.btnPrev.addEventListener('click', ()=>{ collectCurrent(); state.i=Math.max(0,state.i-1); render(); });
 app.btnNext.addEventListener('click', ()=>{ collectCurrent(); state.i=Math.min(SURVEY.length-1,state.i+1); render(); });
 app.btnSubmit.addEventListener('click', submit);
+
+if(consent.checkbox){
+  consent.checkbox.addEventListener('change', ()=>{
+    consent.btnContinue.disabled = !consent.checkbox.checked;
+  });
+}
+
+if(consent.btnContinue){
+  consent.btnContinue.addEventListener('click', ()=>{
+    localStorage.setItem(CONSENT_KEY, 'accepted');
+    applyConsentState();
+  });
+}
+
+if(consent.btnDecline){
+  consent.btnDecline.addEventListener('click', ()=>{
+    localStorage.setItem(CONSENT_KEY, 'declined');
+    applyConsentState();
+  });
+}
+
+if(consent.btnReset){
+  consent.btnReset.addEventListener('click', ()=>{
+    localStorage.removeItem(CONSENT_KEY);
+    applyConsentState();
+  });
+}
+
+applyConsentState();
