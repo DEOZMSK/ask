@@ -8,11 +8,34 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app">
+  <div id="consent-overlay" class="consent-overlay" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+    <div class="consent-card" id="consent-modal">
+      <div class="consent-logo">mr.Kcopoc</div>
+      <h2 id="consent-title">Перед началом — немного формальностей</h2>
+      <p class="consent-text">
+        Перед началом подтвердите, что ознакомились с
+        <a href="https://www.xn--80aaab2acl3bfd.xn--80adxhks/legal/privacy" target="_blank" rel="noopener noreferrer">Политикой конфиденциальности</a>
+        и
+        <a href="https://www.xn--80aaab2acl3bfd.xn--80adxhks/legal/offer" target="_blank" rel="noopener noreferrer">Публичной офертой</a>.
+      </p>
+      <label class="consent-checkbox">
+        <input type="checkbox" id="consent-check" />
+        <span>Я согласен(на) с условиями</span>
+      </label>
+      <div class="consent-actions">
+        <button class="btn btn-gold" id="btn-consent-continue" disabled>Продолжить</button>
+        <button class="btn btn-ghost" id="btn-consent-decline">Отказаться</button>
+      </div>
+      <div class="consent-notice">Сайт использует cookie и локальное хранилище для аналитики. Продолжая, вы соглашаетесь с условиями.</div>
+    </div>
+  </div>
+
+  <main class="app" id="app-root">
     <section class="card intro" id="screen-intro">
+      <div class="badge">опрос проекта mr.Kcopoc</div>
       <h1>Опрос: понимание твоих потребностей</h1>
       <p class="lead">Хочу лучше узнать тебя и твои ожидания 🙌 Это займёт 2–3 минуты.</p>
-      <button id="btn-start" class="btn btn-gold">Начать</button>
+      <button id="btn-start" class="btn btn-gold" disabled>Начать</button>
     </section>
 
     <section class="card survey hidden" id="screen-survey" aria-live="polite">
@@ -32,9 +55,16 @@
     </section>
 
     <section class="card thanks hidden" id="screen-thanks">
+      <div class="thanks-glow"></div>
       <h2>Спасибо за ответы! 🙏</h2>
-      <p>Они помогут сделать консультации полезнее и удобнее именно для тебя</p>
+      <p>Твои мысли помогут сделать консультации полезнее и удобнее именно для тебя.</p>
       <a class="btn btn-ghost" href="/" aria-label="Пройти ещё раз">Пройти ещё раз</a>
+    </section>
+
+    <section class="card blocked hidden" id="screen-blocked" aria-live="assertive">
+      <h2>Прохождение опроса невозможно без согласия на обработку данных</h2>
+      <p>Если передумаешь, можно вернуться и подтвердить согласие, чтобы продолжить.</p>
+      <button class="btn btn-gold" id="btn-consent-reset">Вернуться к согласию</button>
     </section>
   </main>
 
